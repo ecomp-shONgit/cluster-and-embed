@@ -1,12 +1,9 @@
 /**
-
     2022 Prof. Schäfer Uni Trier, Prof. Schubert Uni Leipzig
     JS library for some cluster/dimension reduction functions
-
     Cluster analysis / SORTING: 
     hierar clust (neighb joining) - done
     Boostrap Consensus Tree (? needed)
-
     DIMENSION REDUCTION / low dim embedding:
     own MD - done
     PCA
@@ -15,7 +12,6 @@
     Isomap 
     Locally Linear Embedding 
     Spectral Embedding/Laplacian Eigenmaps
-
 **/
 
 "use strict";
@@ -135,9 +131,9 @@ function sortDML(DM, L){
 
 function clusthierarch( DM, L, clustbez ){
     
-    let temp = sortDML(DM, L);
+    /*let temp = sortDML(DM, L);
     DM = temp[0];
-    L = temp[1];
+    L = temp[1];*/ //did not work out very well
     let ll = L.length;
     let clusters = [];
     //build first cluster layer - singele nodes
@@ -216,7 +212,7 @@ function clusthierarch( DM, L, clustbez ){
             goonbuilding = false;
         }
     }
-    //console.log(clusters);
+    console.log(clusters, L);
     return [clusters, L];
 }
 
@@ -285,7 +281,7 @@ function MDsomething2D( DM, acc ){ //prperties unkonw, passes small test
     let RP = [];
     let fp = [100, 100];
     RP.push( fp );
-    let angs = [0,]
+    let angs = [0,];
     for( let i = 1; i < ll; i += 1 ){
         let point = genpointoncircle( fp[0], fp[1], DM[0][i], 94 );
         //console.log(fp[0], fp[1], DM[0][i], L[i]);
@@ -475,7 +471,6 @@ function MDS( DM ){
     INPUT: 
     howmuch:itteration to call step, perple: perpelxity, di: resulting dimensions, epi: epsilon, X: array of high dim points, D: matix of diffences 
     examp: tSNE(100, 30, 2, 10, [],[] );
-
 */
 
 //globals to store things
@@ -533,8 +528,10 @@ function zeros( n ){
 // utility that returns 2d array filled with random numbers
 // or with value s, if provided
 function randn2d( n, d, s ){
+    //console.log("sss", s, s !== undefined,typeof s !== 'undefined' )
     let uses = typeof s !== 'undefined';
     let x = [];
+    //console.log("uses:", uses);
     for( let i = 0; i < n; i+= 1 ){
         let xhere = [];
         for( let j = 0; j < d; j+= 1 ){ 
@@ -666,7 +663,9 @@ function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
 function initSolution( ){
     // generate random solution to t-SNE
     Y = randn2d( LL, dim); // the solution
+    //console.log(Y);
     gains = randn2d( LL, dim, 1.0); // step gains to accelerate progress in unchanging directions
+    //console.log(gains);
     ystep = randn2d( LL, dim, 0.0); // momentum accumulator
     iter = 0;
 }
@@ -860,6 +859,7 @@ function runclusttest(){
         //svg
         mainsvgelem.appendChild( getdot( posx, posy, 10, nn, nl,"red", "blue" ) );
     }
-    document.getElementById("resultsofclust").appendChild( mainsvgelem );
+    //document.getElementById("resultsofclust").appendChild( mainsvgelem );
+    document.body.appendChild( mainsvgelem );
 }
 
