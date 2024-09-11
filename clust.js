@@ -130,90 +130,106 @@ function sortDML(DM, L){
 }
 
 function clusthierarch( DM, L, clustbez ){
-    
-    /*let temp = sortDML(DM, L);
-    DM = temp[0];
-    L = temp[1];*/ //did not work out very well
+    //console.log(DM);
     let ll = L.length;
     let clusters = [];
+    let clusterweights = [];
     //build first cluster layer - singele nodes
     let f1clust = [];
+    let weightf1clust = [];
     for( let i = 0; i < ll; i += 1 ){
         f1clust.push([i]);
+        weightf1clust.push([0]);
     }
     clusters.push(f1clust);
+    clusterweights.push(weightf1clust);
     //build all other cluster layers 
     let goonbuilding = true;
+    //console.log(clustbez);
     while( goonbuilding ){
-        let lastclusterlayer = clusters[ clusters.length-1 ];
-        let inuse = [];
+        const lastclusterlayer = clusters[ clusters.length-1 ].concat([]);
+        const lastclusterlayerweights = clusterweights[ clusterweights.length-1 ].concat([]);
+        //let inuse = [];
         let newclusterlayer = [];
-        for(let l = 0; l < lastclusterlayer.length; l += 1){
-            
+        let newclusterlayerweights = [];
+        let midiforall = [];
+        for(let l = 0; l < lastclusterlayer.length; l += 1){ //for each cluster
             let memlc = 0;
-            
             let mindist = Infinity;
-            for(let ll = 0; ll < lastclusterlayer[l].length; ll += 1){
-                let i = lastclusterlayer[l][ll];
-                if(i == NaN){
+            for(let ll = 0; ll < lastclusterlayer[l].length; ll += 1){ //for each point in cluster
+                const i = lastclusterlayer[l][ll];
+                if( i == NaN ){
                     continue
                 }
                 if( clustbez == 0 ){ //single linkage
-                    for(let lc = 0; lc < lastclusterlayer.length; lc += 1){
-                        if(lc != l){
-                            for(let llc = 0; llc < lastclusterlayer[lc].length; llc += 1){
-                                let ii = lastclusterlayer[lc][llc];
+                    for( let lc = 0; lc < lastclusterlayer.length; lc += 1 ){
+                        if( lc != l ){
+                            for( let llc = 0; llc < lastclusterlayer[lc].length; llc += 1 ){
+                                const ii = lastclusterlayer[lc][llc];
                                 //console.log(i, ii, lc, llc)
                                 if( mindist > DM[i][ii] ){
                                     memlc = lc;
                                     mindist = DM[i][ii];
+                                    //console.log("single");
                                 }
                             }
                         }
                     }
                 } else { //averade distance of clusters
-                    for(let lc = 0; lc < lastclusterlayer.length; lc += 1){
-                        if(lc != l){
+                    for( let lc = 0; lc < lastclusterlayer.length; lc += 1 ){
+                        if( lc != l ){
                             let aver = 0;
-                            for(let llc = 0; llc < lastclusterlayer[lc].length; llc += 1){
-                                let ii = lastclusterlayer[lc][llc];
-                                aver += DM[i][ii]
-                                
+                            for( let llc = 0; llc < lastclusterlayer[lc].length; llc += 1 ){
+                                const ii = lastclusterlayer[lc][llc];
+                                aver += DM[i][ii];
                             }
                             aver /= lastclusterlayer[lc].length;
-                            if( mindist >  aver ){
+                            if( mindist > aver ){
                                 memlc = lc;
                                 mindist = aver;
                             }
                         }
                     }
                 }
-
-            }
-            
-            let insuelc = indexnotin(inuse, memlc);
-            let insuel = indexnotin(inuse, l);
-            if( insuel &&  insuelc ){
-                inuse.push(l);
-                inuse.push(memlc);
-                newclusterlayer.push(lastclusterlayer[l].concat(lastclusterlayer[memlc]));
-            } else {
-                if( insuel ){
-                    inuse.push(l);
-                    newclusterlayer.push(lastclusterlayer[l].concat([]));
-                } else if( insuelc ){
-                    inuse.push(memlc);
-                    newclusterlayer.push(lastclusterlayer[memlc].concat([]));
-                }
+                midiforall.push( [mindist, memlc, l] );
+                
             }
         }
+        //copy over new layer versions; just join ONE that gives you a truely hierarchical clustering!
+        midiforall.sort((a, b) => a[0] - b[0]); 
+        
+        //console.log(midiforall);
+        
+        let zwconcat = lastclusterlayer[midiforall[0][1]].concat( lastclusterlayer[midiforall[0][2]] );
+        if( clustbez != 0 ){ //average linkage
+            zwconcat =  lastclusterlayer[midiforall[0][2]].concat( lastclusterlayer[midiforall[0][1]] );
+        }
+        for(let m = 0; m < lastclusterlayer.length; m += 1 ){
+            
+            if( m == midiforall[0][1] ){
+                newclusterlayer.push(zwconcat);
+                //console.log(lastclusterlayerweights[ midiforall[0][1]], m, midiforall[0][0]);
+                let tempweight = lastclusterlayerweights[ midiforall[0][1] ].concat( [ midiforall[0][0] ] );
+                //if( clustbez != 0 ){
+                    tempweight = [ midiforall[0][0] ];//lastclusterlayerweights[ midiforall[0][2] ].concat( [ midiforall[0][0] ] );
+                //}
+                newclusterlayerweights.push( tempweight );
+                
+            } else if( m != midiforall[0][2] ) {
+                
+                newclusterlayer.push( lastclusterlayer[m] );
+                newclusterlayerweights.push( lastclusterlayerweights[m] );
+            }
+        
+        }
         clusters.push( newclusterlayer );
-        if( clusters[ clusters.length-1 ].length == 1 ){
+        clusterweights.push( newclusterlayerweights );
+        if( clusters[ clusters.length-1 ].length == 1 ){//all is in one cluster end while
             goonbuilding = false;
         }
     }
-    console.log(clusters, L);
-    return [clusters, L];
+    //console.log(clusters, L, clusterweights);
+    return [clusters, L, clusterweights];
 }
 
 /*
