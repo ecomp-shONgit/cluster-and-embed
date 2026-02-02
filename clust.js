@@ -131,6 +131,7 @@ function sortDML(DM, L){
 
 function clusthierarch( DM, L, clustbez ){
     //console.log(DM);
+    
     let ll = L.length;
     let clusters = [];
     let clusterweights = [];
@@ -195,6 +196,7 @@ function clusthierarch( DM, L, clustbez ){
                 
             }
         }
+        //console.log(midiforall);
         //copy over new layer versions; just join ONE that gives you a truely hierarchical clustering!
         midiforall.sort((a, b) => a[0] - b[0]); 
         
